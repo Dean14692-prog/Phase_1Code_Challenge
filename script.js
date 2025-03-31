@@ -34,7 +34,7 @@ function renderItems(items) {
 // Add a new item to the list (using async/await)
 async function addItem() {
   const itemName = newItemInput.value.trim(); // Get the value from the input
-  if (itemName === "") return; // Don't add empty items
+  if (itemName === "") return; 
 
   const newItem = { name: itemName }; // Create the new item object
 
@@ -43,7 +43,7 @@ async function addItem() {
     const response = await fetch("http://localhost:3000/items", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json", // Specify we're sending JSON data
+        "Content-Type": "application/json", 
       },
       body: JSON.stringify(newItem), // Send the new item as JSON
     });
