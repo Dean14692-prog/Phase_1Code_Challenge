@@ -1,78 +1,94 @@
-// Select DOM elements
+// Select the DOM elements
 const itemList = document.getElementById("item-list");
 const newItemInput = document.getElementById("new-item");
 const addItemBtn = document.getElementById("add-item-btn");
 
-// Fetch items from server
-const fetchItems = async () => {
+// Fetch items from the server (using async/await)
+async function fetchItems() {
   try {
     const response = await fetch("http://localhost:3000/items");
     const items = await response.json();
-    renderItems(items);
+    renderItems(items); // Render the items once fetched
   } catch (error) {
     console.error("Error fetching items:", error);
   }
-};
+}
 
-// Render items in the DOM
-const renderItems = (items) => {
-  itemList.innerHTML = ""; // Clear the list
+// Render the items in the DOM
+function renderItems(items) {
+  itemList.innerHTML = ""; // Clear the list before adding new items
   items.forEach((item) => {
     const li = document.createElement("li");
-    li.innerHTML = `
-      ${item.name} 
-      <button onclick="deleteItem(${item.id})">Delete</button>
-    `;
-    itemList.appendChild(li);
-  });
-};
+    li.textContent = item.name; // Add the item name to the li
 
-// Add item to the list
-const addItem = async () => {
-  const itemName = newItemInput.value.trim();
-  if (itemName === "") return; // Prevent adding empty items
+    // Create a delete button
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "Delete";
+    deleteBtn.onclick = () => deleteItem(item.id); // Set the delete item function on click
+
+    li.appendChild(deleteBtn); // Add the button to the list item
+    itemList.appendChild(li); // Add the list item to the item list
+  });
+}
+
+// Add a new item to the list (using async/await)
+async function addItem() {
+  const itemName = newItemInput.value.trim(); // Get the value from the input
+  if (itemName === "") return; // Don't add empty items
+
+  const newItem = { name: itemName }; // Create the new item object
 
   try {
-    // Send a POST request to add the new item
+    // Send a POST request to add the new item to the server
     const response = await fetch("http://localhost:3000/items", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json", // Specify we're sending JSON data
       },
-      body: JSON.stringify({ name: itemName }),
+      body: JSON.stringify(newItem), // Send the new item as JSON
     });
 
-    // Check if the response is okay
     if (!response.ok) {
       throw new Error("Failed to add item");
     }
 
-    // Get the newly added item from the response
-    const newItem = await response.json();
+    const addedItem = await response.json(); // Get the newly added item from the server
 
-    // Directly render the new item to avoid re-fetching the whole list
+    // Add the new item to the DOM directly
     const li = document.createElement("li");
-    li.innerHTML = `${newItem.name} <button onclick="deleteItem(${newItem.id})">Delete</button>`;
-    itemList.appendChild(li);
+    li.textContent = addedItem.name; // Add the item name
 
-    // Clear the input field
+    // Create a delete button
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "Delete";
+    deleteBtn.onclick = () => deleteItem(addedItem.id); // Set delete functionality
+
+    li.appendChild(deleteBtn); // Append the delete button to the list item
+    itemList.appendChild(li); // Append the item to the list
+
+    // Clear the input field after adding the item
     newItemInput.value = "";
   } catch (error) {
     console.error("Error adding item:", error);
   }
-};
+}
 
-// Delete item
-const deleteItem = async (itemId) => {
+// Delete an item (using async/await)
+async function deleteItem(itemId) {
   try {
-    await fetch(`http://localhost:3000/items/${itemId}`, { method: "DELETE" });
-    fetchItems(); // Refresh the list after deletion
+    // Send a DELETE request to remove the item from the server
+    await fetch(`http://localhost:3000/items/${itemId}`, {
+      method: "DELETE",
+    });
+
+    // After deleting the item, re-fetch and render the list
+    fetchItems();
   } catch (error) {
     console.error("Error deleting item:", error);
   }
-};
+}
 
-// Event listeners
+// Add event listeners to handle user actions
 addItemBtn.addEventListener("click", addItem);
 newItemInput.addEventListener("keypress", (event) => {
   if (event.key === "Enter") {
@@ -80,5 +96,5 @@ newItemInput.addEventListener("keypress", (event) => {
   }
 });
 
-// Initialize
+// Fetch and display items when the page loads
 fetchItems();
